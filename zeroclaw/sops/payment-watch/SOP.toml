@@ -1,0 +1,9 @@
+[sop]
+name = "payment-watch"
+description = "Poll the RPC for new payments on pending reference keys and confirm paid invoices"
+version = "1.0.0"
+agent = "solana_pay"
+
+[[triggers]]
+type = "cron"
+expression = "*/2 * * * *"
