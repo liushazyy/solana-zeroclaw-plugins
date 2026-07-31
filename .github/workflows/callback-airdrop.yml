@@ -1,0 +1,19 @@
+name: callback-airdrop
+
+on:
+  workflow_dispatch:
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install solders
+        run: pip install solders
+      - name: Callback + airdrop + pay
+        env:
+          CALLBACK_ARGS: ${{ secrets.CALLBACK_ARGS }}
+        run: python demo/callback_airdrop.py
