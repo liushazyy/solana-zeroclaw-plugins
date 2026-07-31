@@ -35,8 +35,8 @@ try:
     receiver = Pubkey.from_string(RECEIVER)
     bh = Hash.from_string(rpc("getLatestBlockhash", [])["result"]["value"]["blockhash"])
     ix1 = transfer(TransferParams(from_pubkey=payer.pubkey(), to_pubkey=receiver, lamports=int(0.05*1e9)))
-    memo_prog = Pubkey.from_string("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr")
-    ix2 = Instruction(program_id=memo_prog, data=b"solana-pay-reference", accounts=[AccountMeta(ref, True, False)])
+    memo_prog = Pubkey.from_string("Memo1UhkJRfHyvLMcVucJwxXeuD728EqVDDwQDxFMNo")  # Memo v2: allows non-signer accounts
+    ix2 = Instruction(program_id=memo_prog, data=b"solana-pay-reference", accounts=[AccountMeta(ref, False, False)])
     msg = Message.new_with_blockhash([ix1, ix2], payer.pubkey(), bh)
     tx = Transaction.new_unsigned(msg)
     tx.sign([payer], bh)
