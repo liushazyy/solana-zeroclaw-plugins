@@ -45,20 +45,26 @@ with sync_playwright() as p:
         otp = os.environ.get("GH_OTP", "")
         if otp:
             page.fill('#otp', otp)
-            page.wait_for_timeout(1000)
-            # click Verify button or submit
+            page.wait_for_timeout(1500)
+            val = page.input_value('#otp')
+            print("otp input value:", val)
             btn = page.query_selector('button:has-text("Verify")') or page.query_selector('input[type="submit"]')
             if btn:
                 print("clicking verify")
                 btn.click()
             else:
                 page.keyboard.press("Enter")
-            # wait for redirect back to authorize or faucet
-            for i in range(10):
+            for i in range(8):
                 page.wait_for_timeout(3000)
-                print(f"  wait{i} url:", page.url[:90])
-                if "verified-device" not in page.url:
+                u = page.url
+                txt = page.inner_text('body')[:200].replace(chr(10), ' | ')
+                print(f"  wait{i} url:{u[:80]} txt:{txt[:150]}")
+                if "verified-device" not in u:
                     break
+            if "verified-device" in page.url:
+                print("STILL_ON_DEVICE_VERIFY")
+                browser.close()
+                sys.exit(4)
         else:
             print("NEED_OTP")
             browser.close()
