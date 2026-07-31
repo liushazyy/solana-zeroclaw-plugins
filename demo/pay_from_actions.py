@@ -48,12 +48,21 @@ except Exception as e:
     print("check err:", str(e)[:60])
 
 # ensure balance
+# airdrop with retries: RPC methods + official faucet HTTP API (runner is overseas)
+def faucet_http(address, amount=2000000000):
+    """POST https://faucet.solana.com/api/airdrop"""
+    import urllib.parse
+    body = json.dumps({"address": address, "amount": amount}).encode()
+    req = urllib.request.Request("https://faucet.solana.com/api/airdrop", data=body,
+                                 headers={"Content-Type": "application/json", "User-Agent": "Mozilla/5.0"})
+    with urllib.request.urlopen(req, timeout=30) as r:
+        return json.loads(r.read().decode())
+
 _, bal = rpc_any("getBalance", [str(payer.pubkey())])
-have = bal.get("result", {}).get("value", 0)
-print("balance:", have)
-if have < 0.1e9:
+print("balance:", bal.get("result", {}).get("value", 0))
+if bal.get("result", {}).get("value", 0) < 0.1e9:
     done = False
-    for i in range(6):
+    for i in range(4):
         for u in RPC_LIST:
             try:
                 a = rpc(u, "requestAirdrop", [str(payer.pubkey()), 2000000000], timeout=25)
@@ -65,6 +74,15 @@ if have < 0.1e9:
                 pass
         if done:
             break
+        # try official faucet HTTP API
+        try:
+            fa = faucet_http(str(payer.pubkey()))
+            print("faucet.solana.com:", json.dumps(fa)[:120])
+            if "error" not in str(fa).lower():
+                done = True
+                break
+        except Exception as e:
+            print("faucet http err:", str(e)[:60])
         time.sleep(15)
     time.sleep(8)
     _, bal2 = rpc_any("getBalance", [str(payer.pubkey())])
