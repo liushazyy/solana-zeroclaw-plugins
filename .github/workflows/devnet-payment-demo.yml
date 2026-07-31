@@ -1,0 +1,19 @@
+name: devnet-payment-demo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  pay:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install solders
+        run: pip install solders
+      - name: Run payment demo
+        env:
+          PAYER_KEY: ${{ secrets.PAYER_KEY }}
+        run: python demo/pay_from_actions.py
