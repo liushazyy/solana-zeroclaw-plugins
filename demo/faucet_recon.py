@@ -1,4 +1,4 @@
-"""Test faucet.solana.com/api/request with the real payload shape from JS."""
+"""Test faucet.solana.com/api/request with amount in SOL."""
 import json, sys, time, urllib.request, urllib.error, urllib.parse
 
 from solders.keypair import Keypair
@@ -14,24 +14,24 @@ def post(payload):
     try:
         with urllib.request.urlopen(req, timeout=30) as r:
             data = r.read().decode(errors="replace")
-            print(f"POST {json.dumps(payload)[:100]} -> {r.status} {data[:200]}")
+            print(f"POST {json.dumps(payload)[:110]} -> {r.status} {data[:250]}")
             return r.status, data
     except urllib.error.HTTPError as e:
-        b = e.read().decode(errors="replace")[:200]
-        print(f"POST {json.dumps(payload)[:100]} -> HTTP {e.code} {b}")
+        b = e.read().decode(errors="replace")[:250]
+        print(f"POST {json.dumps(payload)[:110]} -> HTTP {e.code} {b}")
         return e.code, b
     except Exception as e:
-        print(f"POST {json.dumps(payload)[:100]} -> ERR {str(e)[:100]}")
+        print(f"POST {json.dumps(payload)[:110]} -> ERR {str(e)[:100]}")
         return 0, str(e)
 
-# real shape: amount, walletAddress, cloudflareCallback, network
-for cb in ["", "test", None]:
+for amount in [1, 2, 0.5, "1"]:
     for net in ["devnet", "testnet"]:
-        p = {"amount": 1000000000, "walletAddress": addr, "network": net}
-        if cb is not None:
-            p["cloudflareCallback"] = cb
-        st, _ = post(p)
-        if st == 200:
-            print("SUCCESS with", json.dumps(p)[:120])
-            sys.exit(0)
-        time.sleep(2)
+        for cb in ["", None]:
+            p = {"amount": amount, "walletAddress": addr, "network": net}
+            if cb is not None:
+                p["cloudflareCallback"] = cb
+            st, data = post(p)
+            if st == 200 and "success" in data.lower():
+                print("!!! FAUCET SUCCESS with", json.dumps(p)[:120])
+                sys.exit(0)
+            time.sleep(1.5)
