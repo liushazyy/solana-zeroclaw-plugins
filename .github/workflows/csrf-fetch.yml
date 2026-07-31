@@ -1,0 +1,15 @@
+name: csrf-fetch
+
+on:
+  workflow_dispatch:
+
+jobs:
+  csrf:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Fetch csrf
+        run: python demo/csrf_fetch.py
