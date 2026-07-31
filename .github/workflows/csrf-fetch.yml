@@ -11,5 +11,7 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
+      - name: Install deps
+        run: pip install solders
       - name: Fetch csrf
         run: python demo/anon_faucet_test.py
