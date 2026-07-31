@@ -22,14 +22,21 @@ with sync_playwright() as p:
     ])
     page = ctx.new_page()
 
-    # exchange code via callback URL (NextAuth GET flow)
+    # visit homepage first to establish Cloudflare session, then exchange code
+    try:
+        page.goto("https://faucet.solana.com", timeout=45000)
+        page.wait_for_timeout(4000)
+        print("home:", page.url[:100])
+    except Exception as e:
+        print("home err:", str(e)[:80])
+
     cb = f"https://faucet.solana.com/api/auth/callback/github?code={code}&state={state}"
     try:
         page.goto(cb, timeout=45000)
     except Exception as e:
-        print("goto err (expected if nav to home):", str(e)[:80])
+        print("cb goto err (nav to home expected):", str(e)[:80])
     page.wait_for_timeout(5000)
-    print("URL:", page.url[:120])
+    print("URL:", page.url[:130])
 
     sess = page.evaluate("fetch('/api/auth/session').then(r=>r.json())")
     print("SESSION:", json.dumps(sess)[:250])
