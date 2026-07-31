@@ -59,8 +59,6 @@ with sync_playwright() as p:
                 sys.exit(5)
             otp_el.fill(otp)
             page.wait_for_timeout(1500)
-            val = otp_el.input_value()
-            print("otp input value:", val)
             btn = page.query_selector('button:has-text("Verify")') or page.query_selector('input[type="submit"]') or page.query_selector('button[type="submit"]')
             if btn:
                 print("clicking verify")
