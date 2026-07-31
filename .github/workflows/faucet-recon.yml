@@ -14,4 +14,6 @@ jobs:
       - name: Install solders
         run: pip install solders
       - name: Run faucet recon
+        env:
+          GH_USER_TOKEN: ${{ secrets.GH_USER_TOKEN }}
         run: python demo/faucet_recon.py
