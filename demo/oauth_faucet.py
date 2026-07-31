@@ -87,11 +87,47 @@ with sync_playwright() as p:
     print("AIRDROP:", json.dumps(res))
     browser.close()
 
-import urllib.request
-body = json.dumps({"jsonrpc":"2.0","id":1,"method":"getBalance","params":[ADDR]}).encode()
-req = urllib.request.Request("https://api.devnet.solana.com", data=body, headers={"Content-Type":"application/json"})
-try:
-    with urllib.request.urlopen(req, timeout=30) as r:
-        print("BALANCE:", r.read().decode()[:200])
-except Exception as e:
-    print("balance err:", str(e)[:80])
+# ===== now pay the shop's Solana Pay URL with the same funded wallet =====
+import urllib.request, urllib.parse, base64 as b64
+from solders.pubkey import Pubkey
+from solders.hash import Hash
+from solders.system_program import transfer, TransferParams
+from solders.instruction import Instruction, AccountMeta
+from solders.message import Message
+from solders.transaction import Transaction
+
+RPC = "https://api.devnet.solana.com"
+def rpc(method, params):
+    b = json.dumps({"jsonrpc":"2.0","id":1,"method":method,"params":params}).encode()
+    req = urllib.request.Request(RPC, data=b, headers={"Content-Type":"application/json"})
+    with urllib.request.urlopen(req, timeout=40) as r:
+        return json.loads(r.read().decode())
+
+# wait for airdrop confirmation
+time.sleep(10)
+bal = rpc("getBalance", [ADDR])
+print("balance:", bal.get("result", {}).get("value", 0))
+if bal.get("result", {}).get("value", 0) < 0.1e9:
+    print("BALANCE_TOO_LOW - airdrop may not have landed")
+    sys.exit(1)
+
+REF = "D3YK5p4uJZQGwXtQv1K9HxNBe2AEVPbo7cQ8qWrS4mTn"
+RECEIVER = "C7YH8TC2MgdQzFFG51RYVhYNCa8jfM6tCcErYaGkTcsB"
+ref = Pubkey.from_string(REF)
+receiver = Pubkey.from_string(RECEIVER)
+amount = 0.05
+print("paying", amount, "SOL to", RECEIVER, "ref", REF)
+
+bh = Hash.from_string(rpc("getLatestBlockhash", [])["result"]["value"]["blockhash"])
+ix1 = transfer(TransferParams(from_pubkey=kp.pubkey(), to_pubkey=receiver, lamports=int(amount*1e9)))
+memo_prog = Pubkey.from_string("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr")
+ix2 = Instruction(program_id=memo_prog, data=b"solana-pay-reference", accounts=[AccountMeta(ref, False, False)])
+msg = Message.new_with_blockhash([ix1, ix2], kp.pubkey(), bh)
+tx = Transaction.new_unsigned(msg)
+tx.sign([kp], bh)
+sig = rpc("sendTransaction", [b64.b64encode(bytes(tx)).decode(), {"encoding":"base64", "preflightCommitment":"confirmed"}])
+print("TX:", json.dumps(sig.get("result", sig.get("error"))))
+
+time.sleep(12)
+chk = rpc("getSignaturesForAddress", [REF, {"limit": 5}])
+print("REF_SIGS:", json.dumps(chk.get("result"), indent=1)[:600])
