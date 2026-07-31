@@ -1,4 +1,4 @@
-"""Step B (playwright): exchange OAuth code for session, then airdrop + pay. Avoids Cloudflare 403."""
+"""Step B v8 (debug): full cookie/response visibility for the OAuth callback."""
 import json, sys, os, time, base64 as b64
 
 args = json.loads(os.environ["CALLBACK_ARGS"])
@@ -20,72 +20,37 @@ with sync_playwright() as p:
         {"name": "__Host-next-auth.csrf-token", "value": csrf_cookie, "url": "https://faucet.solana.com"},
         {"name": "__Secure-next-auth.callback-url", "value": "https%3A%2F%2Ffaucet.solana.com", "url": "https://faucet.solana.com"},
     ])
+    print("COOKIES_AFTER_SET:", json.dumps(ctx.cookies())[:300])
     page = ctx.new_page()
 
-    # visit homepage first to establish Cloudflare session, then exchange code
-    try:
-        page.goto("https://faucet.solana.com", timeout=45000)
-        page.wait_for_timeout(4000)
-        print("home:", page.url[:100])
-    except Exception as e:
-        print("home err:", str(e)[:80])
+    # log all responses
+    page.on("response", lambda r: print(f"RESP {r.status} {r.url[:120]}"))
+    page.on("console", lambda m: print(f"CONSOLE: {m.text[:150]}"))
+
+    page.goto("https://faucet.solana.com", timeout=45000)
+    page.wait_for_timeout(4000)
+    print("HOME:", page.url[:100])
+    print("COOKIES_AT_HOME:", json.dumps(ctx.cookies())[:300])
 
     cb = f"https://faucet.solana.com/api/auth/callback/github?code={code}&state={state}"
     try:
         page.goto(cb, timeout=45000)
     except Exception as e:
-        print("cb goto err (nav to home expected):", str(e)[:80])
-    page.wait_for_timeout(5000)
-    print("URL:", page.url[:130])
+        print("cb goto err:", str(e)[:100])
+    page.wait_for_timeout(6000)
+    print("URL:", page.url[:150])
+    print("BODY:", page.inner_text("body")[:300].replace(chr(10), " | "))
+    print("COOKIES_AFTER_CB:", json.dumps(ctx.cookies())[:400])
 
-    sess = page.evaluate("fetch('/api/auth/session').then(r=>r.json())")
+    sess = page.evaluate("fetch('/api/auth/session').then(r=>r.json()).catch(e=>({err:String(e)}))")
     print("SESSION:", json.dumps(sess)[:250])
-
-    body = json.dumps({"amount": 0.5, "walletAddress": ADDR, "network": "devnet"})
-    res = page.evaluate("""async (b) => {
-        const r = await fetch('/api/request', {method:'POST', headers:{'Content-Type':'application/json'}, body: b});
-        return {status: r.status, text: await r.text()};
-    }""", body)
-    print("AIRDROP:", json.dumps(res))
     browser.close()
 
-# ===== transfer to shop wallet =====
 import urllib.request
-from solders.pubkey import Pubkey
-from solders.hash import Hash
-from solders.system_program import transfer, TransferParams
-from solders.instruction import Instruction, AccountMeta
-from solders.message import Message
-from solders.transaction import Transaction
-
-RPC = "https://api.devnet.solana.com"
-def rpc(method, params):
-    b = json.dumps({"jsonrpc":"2.0","id":1,"method":method,"params":params}).encode()
-    rq = urllib.request.Request(RPC, data=b, headers={"Content-Type":"application/json"})
-    with urllib.request.urlopen(rq, timeout=40) as r:
-        return json.loads(r.read().decode())
-
-time.sleep(8)
-bal = rpc("getBalance", [ADDR])
-print("balance:", bal.get("result", {}).get("value", 0))
-if bal.get("result", {}).get("value", 0) < 0.1e9:
-    print("BALANCE_TOO_LOW")
-    sys.exit(1)
-
-REF = "D3YK5p4uJZQGwXtQv1K9HxNBe2AEVPbo7cQ8qWrS4mTn"
-RECEIVER = "C7YH8TC2MgdQzFFG51RYVhYNCa8jfM6tCcErYaGkTcsB"
-ref = Pubkey.from_string(REF)
-receiver = Pubkey.from_string(RECEIVER)
-bh = Hash.from_string(rpc("getLatestBlockhash", [])["result"]["value"]["blockhash"])
-ix1 = transfer(TransferParams(from_pubkey=kp.pubkey(), to_pubkey=receiver, lamports=int(0.05*1e9)))
-memo_prog = Pubkey.from_string("MemoSq4gqABAXKb96qnH8TysNcWxMyWCqXgDLGmfcHr")
-ix2 = Instruction(program_id=memo_prog, data=b"solana-pay-reference", accounts=[AccountMeta(ref, False, False)])
-msg = Message.new_with_blockhash([ix1, ix2], kp.pubkey(), bh)
-tx = Transaction.new_unsigned(msg)
-tx.sign([kp], bh)
-sig = rpc("sendTransaction", [b64.b64encode(bytes(tx)).decode(), {"encoding":"base64", "preflightCommitment":"confirmed"}])
-print("TX:", json.dumps(sig.get("result", sig.get("error"))))
-
-time.sleep(12)
-chk = rpc("getSignaturesForAddress", [REF, {"limit": 5}])
-print("REF_SIGS:", json.dumps(chk.get("result"), indent=1)[:600])
+body = json.dumps({"jsonrpc":"2.0","id":1,"method":"getBalance","params":[ADDR]}).encode()
+req = urllib.request.Request("https://api.devnet.solana.com", data=body, headers={"Content-Type":"application/json"})
+try:
+    with urllib.request.urlopen(req, timeout=30) as r:
+        print("BALANCE:", r.read().decode()[:150])
+except Exception as e:
+    print("balance err:", str(e)[:60])
