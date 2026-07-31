@@ -35,7 +35,8 @@ from solders.instruction import Instruction, AccountMeta
 from solders.message import Message
 from solders.transaction import Transaction
 
-payer = Keypair.from_bytes(bytes.fromhex(os.environ["PAYER_KEY"]))
+# Dynamic payer: fresh address every run to dodge per-address faucet rate limits.
+payer = Keypair()
 print("customer:", payer.pubkey())
 
 # already paid?
