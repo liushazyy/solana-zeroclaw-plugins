@@ -44,11 +44,24 @@ with sync_playwright() as p:
         print("device verification page")
         otp = os.environ.get("GH_OTP", "")
         if otp:
-            page.fill('#otp', otp)
+            # find the OTP input with robust selectors
+            otp_el = None
+            for sel in ['#otp', 'input[name="otp"]', 'input[autocomplete="one-time-code"]',
+                        'input[inputmode="numeric"]', 'input[type="text"]']:
+                el = page.query_selector(sel)
+                if el:
+                    otp_el = el
+                    print("otp input found with:", sel)
+                    break
+            if not otp_el:
+                print("OTP_INPUT_NOT_FOUND - body:", page.inner_text('body')[:300].replace(chr(10), ' | '))
+                browser.close()
+                sys.exit(5)
+            otp_el.fill(otp)
             page.wait_for_timeout(1500)
-            val = page.input_value('#otp')
+            val = otp_el.input_value()
             print("otp input value:", val)
-            btn = page.query_selector('button:has-text("Verify")') or page.query_selector('input[type="submit"]')
+            btn = page.query_selector('button:has-text("Verify")') or page.query_selector('input[type="submit"]') or page.query_selector('button[type="submit"]')
             if btn:
                 print("clicking verify")
                 btn.click()
@@ -91,6 +104,10 @@ with sync_playwright() as p:
         return {status: r.status, text: await r.text()};
     }""", body)
     print("AIRDROP:", json.dumps(res))
+    # save session cookies for reuse (no OTP next time)
+    cookies = ctx.cookies()
+    import base64 as b64mod
+    print("COOKIES_B64:", b64mod.b64encode(json.dumps(cookies).encode()).decode())
     browser.close()
 
 # ===== now pay the shop's Solana Pay URL with the same funded wallet =====
