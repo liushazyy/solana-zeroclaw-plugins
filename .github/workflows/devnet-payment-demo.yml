@@ -2,6 +2,8 @@ name: devnet-payment-demo
 
 on:
   workflow_dispatch:
+  schedule:
+    - cron: '*/15 * * * *'
 
 jobs:
   pay:
