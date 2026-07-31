@@ -1,5 +1,7 @@
 # ZeroClaw Solana Pay Terminal 🦞⚡
 
+> 🌐 **Live showcase page:** <https://liushazyy.github.io/solana-zeroclaw-plugins/>
+
 A working **Tier 1** use case on a stock ZeroClaw release binary: an AI agent
 that runs a **Solana Pay payment terminal** — it issues payment requests in chat,
 watches the chain, and confirms invoices. **No keys held. No plugin compiled.
