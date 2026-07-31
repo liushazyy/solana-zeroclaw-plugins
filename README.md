@@ -88,7 +88,9 @@ python demo/pay_from_actions.py
 
 ## Demo video
 
-(see submission — terminal capture of the full flow: request → URL → payment → confirmation)
+- **Part 1 — Payment request** (agent generates the Solana Pay URL in chat):
+  https://github.com/liushazyy/solana-zeroclaw-plugins/blob/main/demo/demo_part1_payment_request.mp4
+- **Part 2 — Payment confirmed** (customer pays; cron SOP detects the signature and confirms): *added after demo run completes*
 
 ## Files
 
