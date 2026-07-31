@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ZeroClaw Solana Pay Terminal — Tier 1 Bounty Submission</title>
+<style>
+  :root { --bg:#0d1117; --card:#161b22; --acc:#ffc857; --ok:#6ee78f; --txt:#e6edf3; --mut:#8b949e; --line:#30363d; }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { background:var(--bg); color:var(--txt); font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"Microsoft YaHei",sans-serif; line-height:1.6; }
+  .wrap { max-width:980px; margin:0 auto; padding:48px 24px 80px; }
+  .badge { display:inline-block; background:rgba(255,200,87,.12); color:var(--acc); border:1px solid rgba(255,200,87,.35); border-radius:999px; padding:4px 14px; font-size:13px; letter-spacing:.5px; margin-bottom:18px; }
+  h1 { font-size:40px; font-weight:800; letter-spacing:-.5px; margin-bottom:10px; }
+  .sub { color:var(--mut); font-size:18px; margin-bottom:36px; }
+  .cards { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:16px; margin:32px 0; }
+  .card { background:var(--card); border:1px solid var(--line); border-radius:12px; padding:22px; }
+  .card h3 { color:var(--acc); font-size:16px; margin-bottom:8px; }
+  .card p { color:var(--mut); font-size:14px; }
+  .proof { background:#0d1a12; border:1px solid rgba(110,231,143,.35); border-radius:12px; padding:20px; font-family:ui-monospace,SFMono-Regular,Consolas,monospace; font-size:13px; color:var(--ok); overflow-x:auto; margin:32px 0; }
+  video { width:100%; border-radius:12px; border:1px solid var(--line); background:#000; margin:16px 0; }
+  h2 { font-size:22px; margin:36px 0 8px; }
+  .links { display:flex; gap:12px; flex-wrap:wrap; margin-top:32px; }
+  a.btn { background:var(--acc); color:#111; text-decoration:none; font-weight:700; padding:12px 24px; border-radius:8px; font-size:15px; }
+  a.btn.gh { background:var(--card); color:var(--txt); border:1px solid var(--line); }
+  .foot { color:var(--mut); font-size:12px; margin-top:48px; text-align:center; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <span class="badge">ZEROCLAW BOUNTY · TIER 1 · NO KEYS · NO PLUGINS</span>
+  <h1>ZeroClaw Solana Pay Terminal</h1>
+  <p class="sub">A self-hosted AI agent that issues Solana Pay payment requests in chat and confirms payments on-chain — built entirely from skills, SOPs, and the stock ZeroClaw binary.</p>
+
+  <div class="cards">
+    <div class="card"><h3>Skill</h3><p><code>solana-pay-terminal</code> teaches the agent to build spec-compliant Solana Pay URLs (SOL &amp; USDC) with a fresh reference key per invoice.</p></div>
+    <div class="card"><h3>SOP</h3><p><code>payment-watch</code> cron polls <code>getSignaturesForAddress(reference)</code> every 2 minutes; a signature means paid.</p></div>
+    <div class="card"><h3>Tier 1 custody</h3><p>The agent never holds a key — it only emits unsigned URLs and reads the chain. No plugin to audit, no funds to lose.</p></div>
+  </div>
+
+  <h2>Demo (60s)</h2>
+  <video controls preload="metadata" src="../demo/showcase_video.mp4"></video>
+
+  <h2>On-chain proof</h2>
+  <div class="proof"># full pay-and-detect loop on a real Solana node (solana-test-validator via GitHub Actions)
+health: ok
+airdrop: 4XZPq3UbbsSg2f4Bd4rCy27avA1JGrMs2uSQV7pGHLo7SrLSgTZaa4pBbVC5MWGgvcBqb2u27zHRnrZ9yw2beJf6
+TX:      48722qHv9keBrFXdbqSLBv8cjrqC14McbsBz444cf45FLskSQqcDcEerD8kCj7YPpuchRPHC8ViUqwgKDo5qRdre
+
+getSignaturesForAddress(reference) -> found:
+{
+  "confirmationStatus": "finalized",
+  "err": null,
+  "memo": "[20] solana-pay-reference",
+  "signature": "48722qHv9keBrFXdbqSLBv8cjrqC14McbsBz444cf45FLskSQqcDcEerD8kCj7YPpuchRPHC8ViUqwgKDo5qRdre",
+  "slot": 56
+}</div>
+
+  <div class="links">
+    <a class="btn" href="https://github.com/liushazyy/solana-zeroclaw-plugins">GitHub Repository</a>
+    <a class="btn gh" href="https://github.com/liushazyy/solana-zeroclaw-plugins/blob/main/README.md">README (full write-up)</a>
+  </div>
+  <div class="foot">Submission for the ZeroClaw Solana bounty · repo: liushazyy/solana-zeroclaw-plugins</div>
+</div>
+</body>
+</html>
