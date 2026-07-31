@@ -17,8 +17,8 @@ with sync_playwright() as p:
     browser = p.chromium.launch(headless=True, args=["--no-sandbox"])
     ctx = browser.new_context()
     ctx.add_cookies([
-        {"name": "__Host-next-auth.csrf-token", "value": csrf_cookie, "domain": "faucet.solana.com", "path": "/", "secure": True},
-        {"name": "__Secure-next-auth.callback-url", "value": "https%3A%2F%2Ffaucet.solana.com", "domain": "faucet.solana.com", "path": "/", "secure": True},
+        {"name": "__Host-next-auth.csrf-token", "value": csrf_cookie, "path": "/", "secure": True},
+        {"name": "__Secure-next-auth.callback-url", "value": "https%3A%2F%2Ffaucet.solana.com", "path": "/", "secure": True},
     ])
     page = ctx.new_page()
 
