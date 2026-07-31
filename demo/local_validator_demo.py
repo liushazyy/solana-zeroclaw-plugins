@@ -43,9 +43,11 @@ try:
     sig = rpc("sendTransaction", [b64.b64encode(bytes(tx)).decode(), {"encoding":"base64", "preflightCommitment":"confirmed"}])
     print("TX:", json.dumps(sig.get("result", sig.get("error"))))
 
-    time.sleep(5)
-    chk = rpc("getSignaturesForAddress", [REF, {"limit": 5}])
+    time.sleep(15)
+    chk = rpc("getSignaturesForAddress", [REF, {"limit": 5, "commitment": "confirmed"}])
     print("REF_SIGS:", json.dumps(chk.get("result"), indent=1)[:500])
+    payer_sigs = rpc("getSignaturesForAddress", [str(payer.pubkey()), {"limit": 5, "commitment": "confirmed"}])
+    print("PAYER_SIGS:", json.dumps(payer_sigs.get("result"), indent=1)[:400])
     print("LOCAL_DEMO_OK" if chk.get("result") else "LOCAL_DEMO_NO_SIG")
 finally:
     proc.terminate()
