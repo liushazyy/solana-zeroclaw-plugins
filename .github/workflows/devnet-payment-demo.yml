@@ -3,7 +3,7 @@ name: devnet-payment-demo
 on:
   workflow_dispatch:
   schedule:
-    - cron: '0 4 * * *'  # daily 04:00 UTC, devnet faucet often rate-limited
+    - cron: '0 4 * * *'  # daily 04:00 UTC
 
 jobs:
   pay:
@@ -13,9 +13,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: '3.12'
-      - name: Install solders
-        run: pip install solders
+      - name: Install deps
+        run: |
+          pip install solders
+          curl -sL -o /tmp/sol.tar.bz2 "https://github.com/solana-labs/solana/releases/download/v1.18.26/solana-release-x86_64-unknown-linux-gnu.tar.bz2"
+          tar -xjf /tmp/sol.tar.bz2 -C /tmp
+          sudo ln -sf /tmp/solana-release/bin/solana-test-validator /usr/local/bin/
+          sudo ln -sf /tmp/solana-release/bin/solana /usr/local/bin/
+          solana-test-validator --version
       - name: Run payment demo
-        env:
-          PAYER_KEY: ${{ secrets.PAYER_KEY }}
-        run: python demo/pay_from_actions.py
+        run: python demo/local_validator_demo.py
