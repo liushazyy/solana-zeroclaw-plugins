@@ -1,3 +1,7 @@
+<p align="center"><b><a href="https://toolgen.xyz">玄境科技 Xuanjing Tech</a></b> · AI Agent 驱动的一人科技公司 · 软件定制 / AI Agent / 安全审计</p>
+
+---
+
 # ZeroClaw Solana Pay Terminal 🦞⚡
 
 > 🌐 **Live showcase page:** <https://liushazyy.github.io/solana-zeroclaw-plugins/>
